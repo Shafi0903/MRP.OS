@@ -1,0 +1,42 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mrp_backend_sqlite
+    restart: unless-stopped
+    environment:
+      APP_NAME: "MRP Management System"
+      APP_ENV: "production"
+      DEBUG: "false"
+      DATABASE_URL: "sqlite:////app/data/mrp.db"
+      SEED_DEMO: ${SEED_DEMO:-true}
+      CORS_ORIGINS: '["http://localhost", "http://localhost:80", "http://localhost:3000", "http://localhost:5173", "http://127.0.0.1"]'
+      SECRET_KEY: ${SECRET_KEY:-mrp_default_production_key_replace_in_env_file}
+    volumes:
+      - mrp_sqlite_data:/app/data
+    networks:
+      - mrp_network
+    expose:
+      - "8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mrp_frontend_sqlite
+    restart: unless-stopped
+    ports:
+      - "${PORT:-80}:80"
+    depends_on:
+      - backend
+    networks:
+      - mrp_network
+
+volumes:
+  mrp_sqlite_data:
+    name: mrp_sqlite_data
+
+networks:
+  mrp_network:
+    name: mrp_network

@@ -1,0 +1,36 @@
+services:
+  # Backend FastAPI Web Service
+  - type: web
+    name: mrp-backend
+    env: python
+    region: singapore # Options: oregon, frankfurt, singapore, ohio
+    plan: free
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "alembic upgrade head && python scripts/seed_demo.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 2"
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mrp-postgres
+          property: connectionString
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEFAULT_CURRENCY
+        value: INR
+      - key: BUSINESS_TIMEZONE
+        value: Asia/Kolkata
+    healthCheckPath: /api/health
+
+databases:
+  # Managed PostgreSQL Database
+  - name: mrp-postgres
+    region: singapore
+    plan: free
+    databaseName: mrp
+    user: mrp_user
